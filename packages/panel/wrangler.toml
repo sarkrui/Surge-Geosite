@@ -5,6 +5,9 @@ main = ".svelte-kit/cloudflare/_worker.js"
 compatibility_date = "2026-03-02"
 workers_dev = true
 compatibility_flags = ["nodejs_compat"]
+routes = [
+  { pattern = "surge.aooo.nl/*", zone_name = "aooo.nl" }
+]
 
 [assets]
 directory = ".svelte-kit/cloudflare"
