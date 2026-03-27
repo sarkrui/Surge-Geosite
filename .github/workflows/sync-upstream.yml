@@ -1,0 +1,93 @@
+name: Sync Upstream Branches
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM_REPOSITORY: ${{ vars.UPSTREAM_REPOSITORY }}
+      SYNC_BRANCHES: ${{ vars.SYNC_BRANCHES }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate upstream repository setting
+        run: |
+          if [ -z "${UPSTREAM_REPOSITORY}" ]; then
+            echo "Repository variable UPSTREAM_REPOSITORY is required (owner/repo)." >&2
+            exit 1
+          fi
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch origin and upstream branches
+        run: |
+          git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+          git fetch upstream '+refs/heads/*:refs/remotes/upstream/*' --prune
+
+      - name: Sync branches
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${SYNC_BRANCHES:-}" ]; then
+            readarray -t branches < <(
+              printf '%s\n' "${SYNC_BRANCHES}" \
+                | tr ', ' '\n\n' \
+                | sed '/^$/d' \
+                | sort -u
+            )
+          else
+            readarray -t branches < <(
+              git for-each-ref --format='%(refname:strip=3)' refs/remotes/upstream \
+                | grep -v '^HEAD$' \
+                | sort -u
+            )
+          fi
+
+          if [ "${#branches[@]}" -eq 0 ]; then
+            echo "No branches selected for sync."
+            exit 0
+          fi
+
+          for branch in "${branches[@]}"; do
+            if ! git show-ref --verify --quiet "refs/remotes/upstream/${branch}"; then
+              echo "Skipping ${branch}: not found on upstream."
+              continue
+            fi
+
+            if git show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
+              git checkout -B "${branch}" "origin/${branch}"
+
+              if git merge-base --is-ancestor "upstream/${branch}" HEAD; then
+                echo "${branch} already contains upstream/${branch}."
+                continue
+              fi
+
+              if git merge --ff-only "upstream/${branch}"; then
+                echo "Fast-forwarded ${branch}."
+              else
+                git merge --no-edit "upstream/${branch}"
+                echo "Merged upstream/${branch} into ${branch}."
+              fi
+
+              git push origin "${branch}"
+            else
+              git checkout -B "${branch}" "upstream/${branch}"
+              git push origin "${branch}"
+              echo "Created ${branch} from upstream."
+            fi
+          done

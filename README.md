@@ -68,8 +68,25 @@ pnpm worker:dev
 Deploy:
 
 ```bash
-pnpm panel:deploy
 pnpm worker:deploy
+pnpm panel:deploy
 ```
+
+## GitHub Automation
+
+This repository includes GitHub Actions for:
+
+- deploying `packages/panel` to Cloudflare Pages on every branch push
+- syncing this fork with all upstream branches on a schedule or manual run
+
+Repository configuration:
+
+- Secrets:
+  - `CLOUDFLARE_API_TOKEN`
+  - `CLOUDFLARE_ACCOUNT_ID`
+- Variables:
+  - `CLOUDFLARE_PAGES_PROJECT` (optional, defaults to `surge-geosite-panel`)
+  - `UPSTREAM_REPOSITORY` (required for sync, format `owner/repo`)
+  - `SYNC_BRANCHES` (optional, comma/newline-separated; defaults to all upstream branches)
 
 Technical architecture: [docs/architecture.md](./docs/architecture.md)

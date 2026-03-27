@@ -9,8 +9,8 @@
     "preview": "vite preview",
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "pnpm run typecheck && pnpm run build",
-    "cf:dev": "pnpm run build && wrangler dev",
-    "cf:deploy": "pnpm run build && wrangler deploy"
+    "cf:dev": "pnpm run build && wrangler pages dev .svelte-kit/cloudflare",
+    "cf:deploy": "pnpm run build && wrangler pages deploy .svelte-kit/cloudflare --project-name surge-geosite-panel"
   },
   "devDependencies": {
     "@internationalized/date": "^3.11.0",
