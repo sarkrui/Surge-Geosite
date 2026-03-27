@@ -4,19 +4,19 @@ This document keeps the technical runtime/ops details for maintainers and contri
 
 ## Runtime Topology
 
-Production uses a Cloudflare Worker API plus a Cloudflare Pages panel on the same domain:
+Production uses two Cloudflare Workers on the same domain:
 
 - API Worker (`packages/worker`)
   - Serves `/geosite*`
   - Runs scheduled upstream refresh
-- Panel Pages app (`packages/panel`)
+- Panel Worker (`packages/panel`)
   - Serves dashboard pages (`/`, `/zh`, `/en`, etc.)
   - Proxies panel-side API calls to geosite endpoints
 
 Recommended route priority:
 
 1. `surge.bojin.co/geosite*` -> API Worker
-2. `surge.bojin.co/*` -> Panel Pages project
+2. `surge.bojin.co/*` -> Panel Worker
 
 ## Refresh Pipeline
 

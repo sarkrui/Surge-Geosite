@@ -15,14 +15,10 @@ SvelteKit SSR panel for Surge Geosite.
 - `pnpm --filter @surge-geosite/panel run build`
 - `pnpm --filter @surge-geosite/panel run cf:deploy`
 
-## Cloudflare Pages
+## Cloudflare
 
-`wrangler.toml` is configured for Pages direct upload:
+`wrangler.toml` deploys the SvelteKit Cloudflare output:
 
-- `pages_build_output_dir = ".svelte-kit/cloudflare"`
+- `main = ".svelte-kit/cloudflare/_worker.js"`
+- `assets.directory = ".svelte-kit/cloudflare"`
 - `services.GEOSITE_API -> surge-geosite` (required internal service binding)
-
-Useful commands:
-
-- `pnpm --filter @surge-geosite/panel run cf:dev`
-- `pnpm --filter @surge-geosite/panel run cf:deploy`
